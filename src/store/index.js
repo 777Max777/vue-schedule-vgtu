@@ -3,6 +3,7 @@ import Vuex from 'vuex'
 import auth from './auth'
 import info from './info'
 import user from './user.js'
+import uploadSchedule from './uploadSchedule.js'
 
 Vue.use(Vuex)
 
@@ -18,17 +19,10 @@ export default new Vuex.Store({
       state.error = null
     }
   },
-  actions: {
-    async fetchCurrency() {
-      const key = process.env.VUE_APP_FIXER
-      const res = await fetch(`http://data.fixer.io/api/latest?access_key=${key}&symbols=USD,EUR,RUB`)
-      return await res.json()
-    }
-  },
   getters: {
     error: s => s.error
   },
   modules: {
-    auth, info, user
+    auth, info, user, uploadSchedule
   }
 })

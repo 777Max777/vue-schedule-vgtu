@@ -3,7 +3,7 @@
   <div id="app">
     <div id="container">
       <div class="row">
-        <SearcherFilters/>
+        <SearcherFilters @add-item='addData' @remove-item='removeData'/>
       </div>
       <div class="row">
         <div class="col s12">
@@ -40,7 +40,7 @@ import * as localeText from "../locale/locale.json";
 import * as gregorian from "../locale/ca-gregorian.json";
 import * as numbers from "../locale/numbers.json";
 import * as timeZoneNames from "../locale/timeZoneNames.json";
-import SearcherFilters from "./SearcherFilters"
+import SearcherFilters from "./SearcherFilters.vue"
 
 
 Vue.use(SchedulePlugin);
@@ -72,6 +72,26 @@ loadCldr(gregorian, numbers, timeZoneNames);
         };
       }
     });
+let data = [
+  {
+    Id: 1,
+    Subject: "Burning Man",
+    StartTime: new Date(2020, 11, 3, 15, 0),
+    EndTime: new Date(2020, 11, 3, 17, 0)
+  },
+  {
+    Id: 2,
+    Subject: "Data-Driven Economy",
+    StartTime: new Date(2020, 11, 2, 12, 0),
+    EndTime: new Date(2020, 11, 2, 14, 0)
+  },
+  {
+    Id: 3,
+    Subject: "Techweek",
+    StartTime: new Date(2020, 11, 2, 15, 0),
+    EndTime: new Date(2020, 11, 2, 17, 0)
+  }
+]
 export default {
   data() {
     return {
@@ -89,28 +109,35 @@ export default {
         slotCount: 6
       },
       eventSettings: {
-        dataSource: [
-          {
-            Id: 1,
-            Subject: "Burning Man",
-            StartTime: new Date(2020, 11, 3, 15, 0),
-            EndTime: new Date(2020, 11, 3, 17, 0)
-          },
-          {
-            Id: 2,
-            Subject: "Data-Driven Economy",
-            StartTime: new Date(2020, 11, 2, 12, 0),
-            EndTime: new Date(2020, 11, 2, 14, 0)
-          },
-          {
-            Id: 3,
-            Subject: "Techweek",
-            StartTime: new Date(2020, 11, 2, 15, 0),
-            EndTime: new Date(2020, 11, 2, 17, 0)
-          }
-        ]
+        dataSource: data
       }
     };
+  },
+  methods: {
+    removeData() {
+      this.eventSettings = {
+        dataSource: this.eventSettings.dataSource.slice(1)
+      }
+    },
+    addData() {
+      let appointments = this.eventSettings.dataSource
+      var endDate = new Date()
+      endDate.setMinutes(endDate.getMinutes() + 30)
+      console.log(endDate)
+      const id = appointments[appointments.length-1].Id
+      const addition = {
+        Id: id+1,
+        Subject: "Программирование на языках высокого уровня",
+        Location: '3 корпус 211 аудитория',
+        StartTime: new Date(),
+        EndTime: endDate
+      }
+      appointments.push(addition)
+      console.log('I\'m here', appointments)
+      this.eventSettings = {
+        dataSource: appointments
+      }
+    }
   },
   mounted: function () {
     let scheduleObj = document.getElementById('Schedule').ej2_instances[0];

@@ -24,7 +24,7 @@
     </div>
     <div class="col s1">
       <span class="flow-text">
-        <a class="waves-effect waves-light btn">
+        <a class="waves-effect waves-light btn" @click.prevent="$emit('add-item')">
           <i class="material-icons right">search</i>
           Найти
         </a>
@@ -32,7 +32,8 @@
     </div>
     <div class="col s2 push-s4" v-show='this.$store.getters.info.isAdmin'>
         <span class="flow-text">
-          <a class="waves-effect waves-light btn">
+          <input id="upload" style="display:none" type="file" @change='fileHandler'/>
+          <a class="waves-effect waves-light btn" @click.prevent='onUploadFile'>
             <i class="material-icons right">cloud_upload</i>
             Загрузить
           </a>
@@ -43,6 +44,7 @@
 
 <script>
 export default {
+  name: 'searcher-filters',
   data: () => ({
     directions: [{
       value: '1',
@@ -71,9 +73,18 @@ export default {
       name: 'бКБ'
     }]
   }),
+  methods: {
+    onUploadFile() {
+      document.getElementById('upload').click()
+    },
+    fileHandler() {
+      this.$store.dispatch('uploadFile', document.getElementById("upload").files[0])
+      this.$emit('remove-item')
+    }
+  },
   mounted: () => {
-    var direction = document.getElementById('direction')
-    var group = document.getElementById('group')
+    let direction = document.getElementById('direction')
+    let group = document.getElementById('group')
 
     M.FormSelect.init(direction, this.directions);
     M.FormSelect.init(group, this.groups);
