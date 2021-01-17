@@ -133,17 +133,20 @@ export default {
         EndTime: endDate
       }
       appointments.push(addition)
-      console.log('I\'m here', appointments)
       this.eventSettings = {
         dataSource: appointments
       }
     }
   },
-  mounted: function () {
+  mounted: async function () {
     let scheduleObj = document.getElementById('Schedule').ej2_instances[0];
     scheduleObj.timeScale.majorSlotTemplate = this.majorSlotTemplate;
     scheduleObj.timeScale.minorSlotTemplate = this.minorSlotTemplate;
     scheduleObj.dataBind();
+    
+    await this.$store.dispatch('loadScheduleByGroup', 'бИСТ-202');
+    let initDataSchedule = this.$store.getters.lessons
+    console.log('Lessons: {}', initDataSchedule)
   },
   provide: {
     schedule: [Day, Week, WorkWeek, Month]
