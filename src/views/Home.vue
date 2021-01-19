@@ -12,6 +12,7 @@
             :locale="locale"
             :eventSettings="eventSettings"
             :timeScale='timeScale'
+            :actionComplete='actionComplete'
           >
             <e-views>
               <e-view option="Day"></e-view>
@@ -97,6 +98,7 @@ export default {
     return {
       height: "85vh",
       locale: "ru",
+      loadedDates: undefined,
       majorSlotTemplate: function (e) {
           return { template: majorTemplateVue }
       },
@@ -136,6 +138,42 @@ export default {
       this.eventSettings = {
         dataSource: appointments
       }
+    },
+    async actionComplete(event) {
+      if (event.requestType == 'dateNavigate' 
+          || event.requestType == 'viewNavigate') {
+        let scheduleObj = document.getElementById('Schedule').ej2_instances[0];
+        if (scheduleObj.activeView.renderDates.length > 0) {
+          let array = scheduleObj.activeView.renderDates
+          let firstDay = array[0]
+          let lastDay = array[array.length-1]
+          if (this.loadedDates) {
+            let months = this.loadedDates.months
+            let tempDate
+            if (!months.includes(firstDay.getMonth())) {
+                months.push(firstDay.getMonth())
+                tempDate = firstDay
+            }
+            if (!months.includes(lastDay.getMonth())) {
+              months.push(lastDay.getMonth())
+              tempDate = lastDay
+            }
+            if (tempDate) {
+              let startDate = new Date(tempDate.getFullYear(), tempDate.getMonth(), 1);
+              let endDate = new Date(tempDate.getFullYear(), tempDate.getMonth() + 1, 0);
+              this.loadedDates = {
+                months,
+                from: startDate.getTime(),
+                to: endDate.getTime()
+              }
+              await this.$store.dispatch('loadSchedule', this.loadedDates);
+              let initDataSchedule = this.$store.getters.lessons
+              console.log('Lessons: {}', initDataSchedule)
+            }
+          }
+        }
+        console.log(this.loadedDates)
+      }
     }
   },
   mounted: async function () {
@@ -143,10 +181,30 @@ export default {
     scheduleObj.timeScale.majorSlotTemplate = this.majorSlotTemplate;
     scheduleObj.timeScale.minorSlotTemplate = this.minorSlotTemplate;
     scheduleObj.dataBind();
-    
-    await this.$store.dispatch('loadScheduleByGroup', 'бИСТ-202');
-    let initDataSchedule = this.$store.getters.lessons
-    console.log('Lessons: {}', initDataSchedule)
+    let array = scheduleObj.activeView.renderDates
+    if (array.length > 0) {
+      let firstDay = array[0]
+      let lastDay = array[array.length-1]
+      if (!this.loadedDates) {
+        let months = []
+        let startDate = new Date(firstDay.getFullYear(), firstDay.getMonth(), 1);
+        let endDate = new Date(lastDay.getFullYear(), lastDay.getMonth() + 1, 0);
+        
+        months.push(firstDay.getMonth())
+        if (startDate.getMonth() !== endDate.getMonth()) {
+          months.push(lastDay.getMonth())
+        }
+        this.loadedDates = {
+              months,
+              from: startDate.getTime(),
+              to: endDate.getTime()
+        }
+        await this.$store.dispatch('loadSchedule', this.loadedDates);
+        let initDataSchedule = this.$store.getters.lessons
+        console.log('Lessons: {}', initDataSchedule)
+      }
+      console.log(this.loadedDates)
+    }
   },
   provide: {
     schedule: [Day, Week, WorkWeek, Month]
