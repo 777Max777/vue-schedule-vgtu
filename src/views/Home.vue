@@ -73,32 +73,14 @@ loadCldr(gregorian, numbers, timeZoneNames);
         };
       }
     });
-let data = [
-  {
-    Id: 1,
-    Subject: "Burning Man",
-    StartTime: new Date(2020, 11, 3, 15, 0),
-    EndTime: new Date(2020, 11, 3, 17, 0)
-  },
-  {
-    Id: 2,
-    Subject: "Data-Driven Economy",
-    StartTime: new Date(2020, 11, 2, 12, 0),
-    EndTime: new Date(2020, 11, 2, 14, 0)
-  },
-  {
-    Id: 3,
-    Subject: "Techweek",
-    StartTime: new Date(2020, 11, 2, 15, 0),
-    EndTime: new Date(2020, 11, 2, 17, 0)
-  }
-]
+
 export default {
   data() {
     return {
       height: "85vh",
       locale: "ru",
       loadedDates: undefined,
+      group: '',
       majorSlotTemplate: function (e) {
           return { template: majorTemplateVue }
       },
@@ -111,76 +93,78 @@ export default {
         slotCount: 6
       },
       eventSettings: {
-        dataSource: data
-      }
+        allowAdding: true,
+        dataSource: []
+      }      
     };
   },
   methods: {
-    removeData() {
-      this.eventSettings = {
-        dataSource: this.eventSettings.dataSource.slice(1)
+    async arrangeLoadAppointments() {
+      let scheduleObj = document.getElementById('Schedule').ej2_instances[0];
+      if (scheduleObj.activeView.renderDates.length > 0) {
+        let array = scheduleObj.activeView.renderDates
+        let firstDay = array[0]
+        let lastDay = array[array.length-1]
+        if (this.loadedDates) {
+          let months = this.loadedDates.months
+          let tempDate
+          if (!months.includes(firstDay.getMonth())) {
+              months.push(firstDay.getMonth())
+              tempDate = firstDay
+          }
+          if (!months.includes(lastDay.getMonth())) {
+            months.push(lastDay.getMonth())
+            tempDate = lastDay
+          }
+          if (tempDate) {
+            let startDate = new Date(tempDate.getFullYear(), tempDate.getMonth(), 1);
+            let endDate = new Date(tempDate.getFullYear(), tempDate.getMonth() + 1, 0);
+            this.loadedDates = {
+              ...this.loadedDates,
+              months,
+              from: startDate.getTime(),
+              to: endDate.getTime()
+            }
+            await this.$store.dispatch('loadSchedule', this.loadedDates);
+            let initDataSchedule = this.$store.getters.lessons
+            console.log('Lessons: {}', initDataSchedule)
+            this.eventSettings = {
+              dataSource: this.eventSettings.dataSource.concat(initDataSchedule)
+            }
+            console.log(this.eventSettings.dataSource)
+          }
+        }
       }
     },
-    addData() {
-      let appointments = this.eventSettings.dataSource
-      var endDate = new Date()
-      endDate.setMinutes(endDate.getMinutes() + 30)
-      console.log(endDate)
-      const id = appointments[appointments.length-1].Id
-      const addition = {
-        Id: id+1,
-        Subject: "Программирование на языках высокого уровня",
-        Location: '3 корпус 211 аудитория',
-        StartTime: new Date(),
-        EndTime: endDate
-      }
-      appointments.push(addition)
+    removeData() {
       this.eventSettings = {
-        dataSource: appointments
+        dataSource: []
       }
+      
+    },
+    async addData(value) {
+      console.log(value)
+      this.group = value
+      this.loadedDates = {
+        ...this.loadedDates,
+        group: value,
+        months: []
+      }
+      this.arrangeLoadAppointments()
     },
     async actionComplete(event) {
       if (event.requestType == 'dateNavigate' 
           || event.requestType == 'viewNavigate') {
-        let scheduleObj = document.getElementById('Schedule').ej2_instances[0];
-        if (scheduleObj.activeView.renderDates.length > 0) {
-          let array = scheduleObj.activeView.renderDates
-          let firstDay = array[0]
-          let lastDay = array[array.length-1]
-          if (this.loadedDates) {
-            let months = this.loadedDates.months
-            let tempDate
-            if (!months.includes(firstDay.getMonth())) {
-                months.push(firstDay.getMonth())
-                tempDate = firstDay
-            }
-            if (!months.includes(lastDay.getMonth())) {
-              months.push(lastDay.getMonth())
-              tempDate = lastDay
-            }
-            if (tempDate) {
-              let startDate = new Date(tempDate.getFullYear(), tempDate.getMonth(), 1);
-              let endDate = new Date(tempDate.getFullYear(), tempDate.getMonth() + 1, 0);
-              this.loadedDates = {
-                months,
-                from: startDate.getTime(),
-                to: endDate.getTime()
-              }
-              await this.$store.dispatch('loadSchedule', this.loadedDates);
-              let initDataSchedule = this.$store.getters.lessons
-              console.log('Lessons: {}', initDataSchedule)
-            }
-          }
+            this.arrangeLoadAppointments()
         }
-        console.log(this.loadedDates)
       }
-    }
   },
   mounted: async function () {
     let scheduleObj = document.getElementById('Schedule').ej2_instances[0];
     scheduleObj.timeScale.majorSlotTemplate = this.majorSlotTemplate;
     scheduleObj.timeScale.minorSlotTemplate = this.minorSlotTemplate;
     scheduleObj.dataBind();
+    
     let array = scheduleObj.activeView.renderDates
     if (array.length > 0) {
       let firstDay = array[0]

@@ -12,19 +12,19 @@
       <label>Направление</label>
     </div>
     <div class="input-field col s3">
-      <select id="group">
+      <select id="group" @change='onChangeGroupHandler'>
         <option value="" disabled selected>Выберите группу</option>
         <option
-          v-for="o of groups"
-          :key="o.value"
-          :value="o.value"
+          v-for="o of this.$store.getters.groups"
+          :key="o.id"
+          :value="o.name"
         >{{o.name}}</option>
       </select>
       <label>Группа</label>
     </div>
     <div class="col s1">
       <span class="flow-text">
-        <a class="waves-effect waves-light btn" @click.prevent="$emit('add-item')">
+        <a class="waves-effect waves-light btn" @click='onSendFilterData'>
           <i class="material-icons right">search</i>
           Найти
         </a>
@@ -45,7 +45,9 @@
 <script>
 export default {
   name: 'searcher-filters',
-  data: () => ({
+  data: () => {
+    return {
+    choosenGroup: "",
     directions: [{
       value: '1',
       name: 'Информатика и вычислительная техника'
@@ -59,35 +61,34 @@ export default {
       value: '4',
       name: 'Компьютерная безопасность'
     }],
-    groups: [{
-      value: '1',
-      name: 'бАМ'
-    },{
-      value: '2',
-      name: 'бВМ'
-    },{
-      value: '3',
-      name: 'бАП'
-    },{
-      value: '4',
-      name: 'бКБ'
-    }]
-  }),
+    groups: []
+  }},
   methods: {
+    onChangeGroupHandler: function(event) {
+      this.choosenGroup = event.target.value
+    },
+    onSendFilterData: function() {
+      this.$emit('add-item', this.choosenGroup)
+    },
     onUploadFile() {
       document.getElementById('upload').click()
     },
-    fileHandler() {
-      this.$store.dispatch('uploadFile', document.getElementById("upload").files[0])
+    async loadGroups(){
+      let group = document.getElementById('group')
+      await this.$store.dispatch('getAllGroups')
+      M.FormSelect.init(group, this.$store.getters.groups);
+    },
+    async fileHandler() {
+      await this.$store.dispatch('uploadFile', document.getElementById("upload").files[0])
       this.$emit('remove-item')
+      await this.loadGroups()
+      M.toast({html: 'Загрузка расписания выполнена'})
     }
   },
-  mounted: () => {
+  mounted: async function() {
     let direction = document.getElementById('direction')
-    let group = document.getElementById('group')
-
     M.FormSelect.init(direction, this.directions);
-    M.FormSelect.init(group, this.groups);
+    await this.loadGroups()
   }
 }
 </script>

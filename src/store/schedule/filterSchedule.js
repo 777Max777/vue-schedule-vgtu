@@ -41,13 +41,15 @@ export default {
       .then(response => response.json())
       .then(data => {
         console.log(data)
-        data.map(lesson => ({
-          Id: lesson.id,
-          Subject: lesson.value,
-          StartTime: new Date(lesson.from),
-          EndTime: new Date(lesson.to)
-        }))
-        commit('setLessons', data)
+        let lessons = data.map(date => date.lessons)
+          .flatMap(lessonArray => lessonArray)
+          .map(lesson =>  ({
+            Id: lesson.id,
+            Subject: lesson.value,
+            StartTime: new Date(lesson.startLongTime),
+            EndTime: new Date(lesson.endLongTime)
+          }))
+        commit('setLessons', lessons)
       })
       .catch(err => console.error(err))
     }

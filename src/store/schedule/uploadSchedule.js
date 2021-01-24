@@ -2,14 +2,14 @@ import server from "../../utils/utilsConstants"
 
 export default {
   actions: {
-    uploadFile({dispatch, commit}, file) {
+    async uploadFile({dispatch, commit}, file) {
       try {
         if (file.type != 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet') {
           throw({code: 'incorrect_file_type'})
         }
         let formData = new FormData();
         formData.append("file", file);
-        fetch(`${server}/api/v1/excel/parse`, {method: "POST", body: formData});
+        await fetch(`${server}/api/v1/excel/parse`, {method: "POST", body: formData});
       } catch (e) {
         commit('setError', e)
         throw e

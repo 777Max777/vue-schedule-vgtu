@@ -3,6 +3,7 @@ import Vuex from 'vuex'
 import auth from './auth'
 import info from './info'
 import user from './user.js'
+import group from './group.js'
 import uploadSchedule from './schedule/uploadSchedule.js'
 import initSchedule from './schedule/initSchedule.js'
 import filterSchedule from './schedule/filterSchedule.js'
@@ -25,6 +26,6 @@ export default new Vuex.Store({
     error: s => s.error
   },
   modules: {
-    auth, info, user, uploadSchedule, initSchedule, filterSchedule
+    auth, info, user, uploadSchedule, initSchedule, filterSchedule, group
   }
 })
